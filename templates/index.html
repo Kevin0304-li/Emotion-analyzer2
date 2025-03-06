@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmotionAI - Sentiment Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fa-solid fa-brain"></i> EmotionAI</h1>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-section">
+                    <h3>About</h3>
+                    <p>EmotionAI analyzes text to determine emotional responses based on semantic meaning and context.</p>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Features</h3>
+                    <ul>
+                        <li>Semantic analysis</li>
+                        <li>Context recognition</li>
+                        <li>Emotional response generation</li>
+                        <li>Relationship-aware responses</li>
+                    </ul>
+                </div>
+                <div class="sidebar-section relationship-selector">
+                    <h3>Relationship Context</h3>
+                    <select id="relationship">
+                        <option value="friend">Friend</option>
+                        <option value="family">Family</option>
+                        <option value="colleague">Colleague</option>
+                        <option value="stranger" selected>Stranger</option>
+                        <option value="adversary">Adversary</option>
+                        <option value="enemy">Enemy</option>
+                    </select>
+                </div>
+            </div>
+            <div class="sidebar-footer">
+                <p>&copy; 2025 EmotionAI</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <h2>Sentiment Analysis Chat</h2>
+                <div class="header-actions">
+                    <button id="new-chat-btn" title="New Chat"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+            
+            <!-- Chat History -->
+            <div class="chat-history" id="chat-history">
+                <!-- Welcome Message -->
+                <div class="chat-message ai-message">
+                    <div class="message-avatar">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>Hello! I'm EmotionAI. Send me a text message, and I'll analyze the emotional response to it based on context and semantic meaning.</p>
+                        <p>For example, try saying "I'm going to kill you" as a friend versus as an enemy, and see how the emotional response differs.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <div class="input-wrapper">
+                    <textarea id="text-input" placeholder="Type your message here..." rows="1"></textarea>
+                    <button id="analyze-btn" title="Analyze Emotions">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="input-info">
+                    <p>EmotionAI analyzes the emotional response to your text based on the selected relationship context.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Templates for dynamic content -->
+    <template id="user-message-template">
+        <div class="chat-message user-message">
+            <div class="message-avatar">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="message-content">
+                <p class="message-text"></p>
+            </div>
+        </div>
+    </template>
+    
+    <template id="ai-response-template">
+        <div class="chat-message ai-message">
+            <div class="message-avatar">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <p>Here's my emotional response to your message:</p>
+                <div class="emotion-analysis">
+                    <div class="dominant-emotion-container">
+                        <p>Dominant emotion: <span class="dominant-emotion"></span></p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas class="emotions-chart"></canvas>
+                    </div>
+                    <div class="context-info">
+                        <h4>Context Information</h4>
+                        <div class="context-details">
+                            <div class="context-item">
+                                <span>Relationship:</span>
+                                <span class="relationship-type"></span>
+                            </div>
+                            <div class="context-item">
+                                <span>Trust Level:</span>
+                                <span class="trust-level"></span>
+                            </div>
+                            <div class="context-item">
+                                <span>Formality Level:</span>
+                                <span class="formality-level"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
