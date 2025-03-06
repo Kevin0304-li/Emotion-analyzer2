@@ -547,17 +547,19 @@ body {
 .chart-container {
     background-color: var(--card-background);
     border-radius: var(--radius-md);
-    padding: 1.25rem;
-    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
     margin-top: 1.25rem;
-    height: 300px;
+    height: 350px;
     position: relative;
     grid-column: span 2;
     border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
 }
 
 .chart-container canvas {
-    max-height: 250px;
+    max-width: 100%;
+    height: 100%;
 }
 
 .context-info {

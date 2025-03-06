@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initialize emotion chart
+    // Initialize emotion chart with improved visualization
     function initChart(canvasElement, chartId) {
         try {
             console.log('Initializing chart with ID:', chartId);
@@ -241,52 +241,142 @@ document.addEventListener('DOMContentLoaded', function() {
             // Default data if none is present
             const defaultEmotions = {
                 Joy: 0.1,
-                Sadness: 0.1,
-                Anger: 0.1,
-                Fear: 0.1,
+                Love: 0.1,
+                Trust: 0.1,
                 Surprise: 0.1,
+                Fear: 0.1,
+                Sadness: 0.1,
                 Disgust: 0.1,
-                Trust: 0.4,
-                Love: 0.1
+                Anger: 0.1
             };
+            
+            // Logical grouping of emotions (positive first, then neutral, then negative)
+            const emotionOrder = ['Joy', 'Love', 'Trust', 'Surprise', 'Fear', 'Sadness', 'Disgust', 'Anger'];
             
             // Get emotions data from data attributes if available
             const emotions = {};
-            for (const emotion in defaultEmotions) {
-                const value = canvasElement.getAttribute(`data-${emotion.toLowerCase()}`) || defaultEmotions[emotion];
+            emotionOrder.forEach(emotion => {
+                const value = canvasElement.getAttribute(`data-${emotion.toLowerCase()}`) || 
+                             (defaultEmotions[emotion] || 0.1);
                 emotions[emotion] = parseFloat(value);
-            }
+            });
             
             // If chart already exists, destroy it
             if (emotionsChart) {
                 emotionsChart.destroy();
             }
             
-            // Create new chart
+            // Color configuration
+            const chartColors = {
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+                // Color mapping for emotion groups
+                positiveColor: 'rgba(76, 175, 80, 0.6)',   // Green for positive
+                neutralColor: 'rgba(0, 188, 212, 0.6)',    // Cyan for neutral/surprise
+                negativeColor: 'rgba(244, 67, 54, 0.6)'    // Red for negative
+            };
+            
+            // Create dataset with ordered emotions
+            const orderedData = emotionOrder.map(emotion => emotions[emotion] || 0);
+            
+            // Generate pointBackgroundColors based on emotion type
+            const pointColors = emotionOrder.map(emotion => {
+                if (['Joy', 'Love', 'Trust'].includes(emotion)) {
+                    return chartColors.positiveColor;
+                } else if (['Surprise'].includes(emotion)) {
+                    return chartColors.neutralColor;
+                } else {
+                    return chartColors.negativeColor;
+                }
+            });
+            
+            // Create new chart with improved configuration
             emotionsChart = new Chart(canvasElement.getContext('2d'), {
                 type: 'radar',
                 data: {
-                    labels: Object.keys(emotions),
+                    labels: emotionOrder,
                     datasets: [{
                         label: 'Emotion Intensity',
-                        data: Object.values(emotions),
+                        data: orderedData,
                         backgroundColor: 'rgba(75, 192, 192, 0.2)',
                         borderColor: 'rgba(75, 192, 192, 1)',
-                        pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: pointColors,
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(75, 192, 192, 1)'
+                        pointHoverBorderColor: 'rgba(75, 192, 192, 1)',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Emotion Intensity Distribution',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${(context.raw * 100).toFixed(1)}%`;
+                                }
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
                     scales: {
                         r: {
                             angleLines: {
-                                display: true
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
                             },
                             suggestedMin: 0,
-                            suggestedMax: 1
+                            suggestedMax: 1,
+                            ticks: {
+                                stepSize: 0.2,
+                                callback: function(value) {
+                                    return (value * 100) + '%';
+                                },
+                                backdropColor: 'rgba(255, 255, 255, 0.75)',
+                                font: {
+                                    size: 10
+                                }
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                },
+                                color: function(context) {
+                                    const emotion = emotionOrder[context.index];
+                                    if (['Joy', 'Love', 'Trust'].includes(emotion)) {
+                                        return 'rgba(76, 175, 80, 1)'; // Green for positive
+                                    } else if (['Surprise'].includes(emotion)) {
+                                        return 'rgba(0, 188, 212, 1)'; // Cyan for neutral
+                                    } else {
+                                        return 'rgba(244, 67, 54, 1)'; // Red for negative
+                                    }
+                                }
+                            }
                         }
                     }
                 }
