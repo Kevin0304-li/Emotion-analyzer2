@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmotionAI - Feedback Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .report-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background-color: var(--background-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .feedback-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .feedback-table th, .feedback-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .feedback-table th {
+            background-color: var(--background-color);
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .feedback-table tr:hover {
+            background-color: var(--background-color);
+        }
+        .rating-stars {
+            color: #fbbf24;
+        }
+        .feedback-text {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .feedback-text.expanded {
+            white-space: normal;
+            max-width: none;
+        }
+        .timestamp {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+        .export-btn {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="report-header">
+            <h1><i class="fa-solid fa-chart-line"></i> EmotionAI Feedback Report</h1>
+            <div>
+                <button class="btn export-btn" id="export-csv"><i class="fa-solid fa-download"></i> Export CSV</button>
+                <a href="/" class="btn"><i class="fa-solid fa-home"></i> Back to App</a>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_entries }}</div>
+                <div class="stat-label">Total Feedback Entries</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ "%.1f"|format(avg_rating) }}</div>
+                <div class="stat-label">Average Rating</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ feedback_data|selectattr('rating', 'equalto', 5)|list|length }}</div>
+                <div class="stat-label">5-Star Ratings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ feedback_data|selectattr('feedback')|list|length }}</div>
+                <div class="stat-label">Text Comments</div>
+            </div>
+        </div>
+
+        {% if feedback_data %}
+        <table class="feedback-table">
+            <thead>
+                <tr>
+                    <th>Session ID</th>
+                    <th>Rating</th>
+                    <th>Feedback</th>
+                    <th>Relationship</th>
+                    <th>Message Count</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in feedback_data %}
+                <tr>
+                    <td title="{{ entry.sessionId }}">{{ entry.sessionId[:10] }}...</td>
+                    <td>
+                        <div class="rating-stars">
+                            {% for i in range(entry.rating|default(0)) %}
+                            <i class="fa-solid fa-star"></i>
+                            {% endfor %}
+                            {% for i in range(5 - entry.rating|default(0)) %}
+                            <i class="fa-regular fa-star"></i>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="feedback-text" onclick="this.classList.toggle('expanded')">{{ entry.feedback or "No comment provided" }}</td>
+                    <td>{{ entry.sessionMetrics.relationship|default("Unknown") }}</td>
+                    <td>{{ entry.sessionMetrics.messageCount|default(0) }}</td>
+                    <td class="timestamp" title="{{ entry.timestamp }}">{{ entry.timestamp|replace("T", " ")|truncate(19, True, "") }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-light);">
+            <i class="fa-solid fa-inbox fa-4x"></i>
+            <p style="margin-top: 1rem;">No feedback data collected yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('export-csv').addEventListener('click', function() {
+            const feedbackData = {{ feedback_data|tojson }};
+            if (!feedbackData || feedbackData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            
+            // Create CSV content
+            const headers = ['Session ID', 'Rating', 'Feedback', 'Relationship', 'Message Count', 'Timestamp'];
+            const csvContent = [
+                headers.join(','),
+                ...feedbackData.map(entry => [
+                    `"${entry.sessionId || ''}"`,
+                    entry.rating || 0,
+                    `"${(entry.feedback || '').replace(/"/g, '""')}"`,
+                    `"${entry.sessionMetrics?.relationship || ''}"`,
+                    entry.sessionMetrics?.messageCount || 0,
+                    entry.timestamp || ''
+                ].join(','))
+            ].join('\n');
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `emotionai_feedback_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html> 

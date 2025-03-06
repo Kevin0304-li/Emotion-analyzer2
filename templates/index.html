@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmotionAI - Sentiment Analysis</title>
+    <title>YouthMind - Sentiment Analysis</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,12 +14,12 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1><i class="fa-solid fa-brain"></i> EmotionAI</h1>
+                <h1><i class="fa-solid fa-brain"></i> YouthMind</h1>
             </div>
             <div class="sidebar-content">
                 <div class="sidebar-section">
                     <h3>About</h3>
-                    <p>EmotionAI analyzes text to determine emotional responses based on semantic meaning and context.</p>
+                    <p>YouthMind analyzes text to determine emotional responses based on semantic meaning and context.</p>
                 </div>
                 <div class="sidebar-section">
                     <h3>Features</h3>
@@ -32,7 +32,7 @@
                 </div>
                 <div class="sidebar-section relationship-selector">
                     <h3>Relationship Context</h3>
-                    <select id="relationship">
+                    <select id="relationship-select">
                         <option value="friend">Friend</option>
                         <option value="family">Family</option>
                         <option value="colleague">Colleague</option>
@@ -41,9 +41,17 @@
                         <option value="enemy">Enemy</option>
                     </select>
                 </div>
+                <div class="sidebar-section models-info">
+                    <h3>AI Models Used</h3>
+                    <ul>
+                        {% for model_type, model_name in ai_models.items() %}
+                        <li><strong>{{ model_type|title }}:</strong> {{ model_name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
             <div class="sidebar-footer">
-                <p>&copy; 2025 EmotionAI</p>
+                <p>&copy; 2025 YouthMind</p>
             </div>
         </div>
 
@@ -53,6 +61,7 @@
             <div class="chat-header">
                 <h2>Sentiment Analysis Chat</h2>
                 <div class="header-actions">
+                    <button id="history-btn" title="Chat History"><i class="fa-solid fa-history"></i></button>
                     <button id="new-chat-btn" title="New Chat"><i class="fa-solid fa-plus"></i></button>
                 </div>
             </div>
@@ -65,7 +74,7 @@
                         <i class="fa-solid fa-robot"></i>
                     </div>
                     <div class="message-content">
-                        <p>Hello! I'm EmotionAI. Send me a text message, and I'll analyze the emotional response to it based on context and semantic meaning.</p>
+                        <p>Hello! I'm YouthMind. Send me a text message, and I'll analyze the emotional response to it based on context and semantic meaning.</p>
                         <p>For example, try saying "I'm going to kill you" as a friend versus as an enemy, and see how the emotional response differs.</p>
                     </div>
                 </div>
@@ -80,8 +89,32 @@
                     </button>
                 </div>
                 <div class="input-info">
-                    <p>EmotionAI analyzes the emotional response to your text based on the selected relationship context.</p>
+                    <p>YouthMind analyzes the emotional response to your text based on the selected relationship context.</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="feedback-modal" id="feedback-modal">
+        <div class="feedback-content">
+            <div class="feedback-header">
+                <h3>How was your experience?</h3>
+            </div>
+            <div class="feedback-options">
+                <p>Your feedback helps us improve our emotion analysis. Please rate your experience:</p>
+                <div class="feedback-rating">
+                    <span class="rating-star" data-value="1"><i class="fa-solid fa-star"></i></span>
+                    <span class="rating-star" data-value="2"><i class="fa-solid fa-star"></i></span>
+                    <span class="rating-star" data-value="3"><i class="fa-solid fa-star"></i></span>
+                    <span class="rating-star" data-value="4"><i class="fa-solid fa-star"></i></span>
+                    <span class="rating-star" data-value="5"><i class="fa-solid fa-star"></i></span>
+                </div>
+                <textarea class="feedback-text" id="feedback-text" placeholder="Tell us what you liked or how we can improve..."></textarea>
+            </div>
+            <div class="feedback-actions">
+                <button class="feedback-button feedback-skip" id="feedback-skip">Skip</button>
+                <button class="feedback-button feedback-submit" id="feedback-submit">Submit Feedback</button>
             </div>
         </div>
     </div>
@@ -106,8 +139,11 @@
             <div class="message-content">
                 <p>Here's my emotional response to your message:</p>
                 <div class="emotion-analysis">
+                    <div class="sentiment-container">
+                        <p>Text sentiment: <strong class="text-sentiment-label"></strong> <span class="text-sentiment-value"></span></p>
+                    </div>
                     <div class="dominant-emotion-container">
-                        <p>Dominant emotion: <span class="dominant-emotion"></span></p>
+                        <p>Dominant emotion: <strong class="dominant-emotion"></strong></p>
                     </div>
                     <div class="chart-container">
                         <canvas class="emotions-chart"></canvas>
